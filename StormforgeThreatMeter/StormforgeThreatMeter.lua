@@ -450,6 +450,7 @@ function SlashCmdList.STORMFORGETHREATMETER(command)
 	if not arguments[1] then
 		print("Stormforge Threat Meter commands:")
 		print("/stm lock - Locks or unlocks the meter.")
+		print("/stm toggle - Hides or shows the meter frame.")
 		print("/stm warnThreshold # - Plays sound when over #% threat.")
 		print("/stm toggleClassIcons - Shows or hides class icons.")
 		print("/stm opacity - Set background opacity. Default 0.3")
@@ -505,6 +506,12 @@ function SlashCmdList.STORMFORGETHREATMETER(command)
 			else
 				STM_CONFIG["barPadding"] = tonumber(arguments[2])
 				repopBars()
+			end
+		elseif arg1 == 'toggle' then
+			if meter:IsShown() then
+				meter:Hide()
+			else
+				meter:Show()
 			end
 		end
 	end
