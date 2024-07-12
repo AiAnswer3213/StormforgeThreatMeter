@@ -3,7 +3,8 @@
 STM_CONFIG = {
 	isLocked = false,
 	showClassIcons = true,
-	warnThreshold = 90
+	warnThreshold = 90,
+	backgroundOpacity = 0.3
 }
 
 local STL = LibStub:GetLibrary("StormforgeThreatLib")
@@ -30,7 +31,7 @@ meter:SetHeight((bar_height + bar_padding + 0.05) / scale * (max_currently_visib
 meter:SetWidth(140 / scale)
 meter:SetPoint("CENTER", UIParent, "CENTER", 300 / scale, 0)
 meter.background = meter:CreateTexture(nil, "BACKGROUND")
-meter.background:SetTexture(0, 0, 0, 1)
+meter.background:SetTexture(0, 0, 0, STM_CONFIG.backgroundOpacity)
 meter.background:SetAllPoints()
 meter:SetClampedToScreen(true)
 meter:SetMovable(true)
@@ -163,7 +164,7 @@ local function unlockTimers()
 	STM_CONFIG["isLocked"] = false
 	meter.title:Show()
 	meter:EnableMouse(true)
-	meter.background:SetTexture(0, 0, 0, 1)
+	meter.background:SetTexture(0, 0, 0, STM_CONFIG.backgroundOpacity)
 	meter.resizeButton:Show()
 end
 
@@ -406,6 +407,7 @@ function SlashCmdList.STORMFORGETHREATMETER(command)
 		print("/stm lock - Locks or unlocks the meter.")
 		print("/stm warnThreshold # - Plays sound when over #% threat.")
 		print("/stm toggleClassIcons - Shows or hides class icons.")
+		print("/stm opacity - Set background opacity. Default 0.3")
 	else
 		local arg1 = string.lower(arguments[1])
 		if arg1 == 'lock' then
@@ -436,6 +438,13 @@ function SlashCmdList.STORMFORGETHREATMETER(command)
 				print("Class icons are now hidden.")
 			end
 			meter.update()
+		elseif arg1 == 'opacity' then
+			if not arguments[2] or tonumber(arguments[2]) == nil then
+				print("Stm: Enter opacity. Range 1.00 - 0.00")
+			else
+				STM_CONFIG["backgroundOpacity"] = tonumber(arguments[2])
+				meter.background:SetTexture(0, 0, 0, STM_CONFIG["backgroundOpacity"])
+			end
 		end
 	end
 end
