@@ -5,7 +5,8 @@ STM_CONFIG = {
 	showClassIcons = true,
 	warnThreshold = 90,
 	backgroundOpacity = 0.3,
-	barHeight = 15
+	barHeight = 15,
+	barPadding = 2
 }
 
 local STL = LibStub:GetLibrary("StormforgeThreatLib")
@@ -22,7 +23,7 @@ local sound_warning_file = "Sound\\Spells\\SeepingGaseous_Fel_Nova.wav"
 local min_bars = 5
 local max_bars = 25
 local max_currently_visible_bars = 5
-local bar_height = STM_CONFIG["barHeight"]
+local bar_height = 15
 local bar_padding = 2
 local left_margin = bar_height
 
@@ -115,7 +116,7 @@ local function createThreatBar(y)
 	bar.foreground:SetHeight(bar:GetHeight())
 
 	bar.nameText = addText(bar, "LEFT")
-	bar.nameText:SetPoint("TOPLEFT", bar, "TOPLEFT", 0, 0)
+	bar.nameText:SetPoint("TOPLEFT", bar, "TOPLEFT", 1, 0)
 	bar.nameText:SetPoint("TOPRIGHT", bar, "TOPRIGHT", -70 / scale, 0)
 
 	bar.threatText = addText(bar, "RIGHT")
@@ -140,6 +141,10 @@ end
 local pullAggroBar
 meter.threatBars = {}
 local function repopBars()
+	bar_height = STM_CONFIG["barHeight"]
+	left_margin = bar_height
+	bar_padding = STM_CONFIG["barPadding"]
+	
 	for _, childFrame in pairs({meter:GetChildren()}) do
 		if childFrame:GetName() == "bar" then
 			childFrame:Hide()
@@ -368,12 +373,19 @@ end
 
 function meter:OnEvent(event, ...)
 	if event == "ADDON_LOADED" then
+		if STM_CONFIG["backgroundOpacity"] == nil then STM_CONFIG["backgroundOpacity"] = 0.3 end
 		if STM_CONFIG["isLocked"] then lockTimers() else unlockTimers() end
 		max_currently_visible_bars = calculateMaxVisibleBars()
 
 		if STM_CONFIG["isLocked"] == nil then STM_CONFIG["isLocked"] = true end
 		if STM_CONFIG["showClassIcons"] == nil then STM_CONFIG["showClassIcons"] = true end
 		if STM_CONFIG["warnThreshold"] == nil then STM_CONFIG["warnThreshold"] = 115 end
+		
+		if STM_CONFIG["barHeight"] == nil then STM_CONFIG["barHeight"] = 15 end
+		if STM_CONFIG["barPadding"] == nil then STM_CONFIG["barPadding"] = 2 end
+		
+		repopBars()
+		
 	elseif event == "UNIT_TARGET" then
 		if arg1 ~= "player" then return end
 		meter.targetName = UnitName("target")
@@ -442,6 +454,7 @@ function SlashCmdList.STORMFORGETHREATMETER(command)
 		print("/stm toggleClassIcons - Shows or hides class icons.")
 		print("/stm opacity - Set background opacity. Default 0.3")
 		print("/stm barheight - Set bar height. Default 15")
+		print("/stm barpadding - Set bar padding. Default 2")
 	else
 		local arg1 = string.lower(arguments[1])
 		if arg1 == 'lock' then
@@ -484,8 +497,13 @@ function SlashCmdList.STORMFORGETHREATMETER(command)
 				print("Stm: bar height. Range 10 - 30")
 			else
 				STM_CONFIG["barHeight"] = tonumber(arguments[2])
-				bar_height = tonumber(arguments[2])
-				left_margin = bar_height
+				repopBars()
+			end
+		elseif arg1 == 'barpadding' then
+			if not arguments[2] or tonumber(arguments[2]) == nil then
+				print("Stm: bar padding. Range 0 - 5")
+			else
+				STM_CONFIG["barPadding"] = tonumber(arguments[2])
 				repopBars()
 			end
 		end
