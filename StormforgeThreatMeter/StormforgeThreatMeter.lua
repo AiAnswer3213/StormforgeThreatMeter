@@ -4,7 +4,8 @@ STM_CONFIG = {
 	isLocked = false,
 	showClassIcons = true,
 	warnThreshold = 90,
-	backgroundOpacity = 0.3
+	backgroundOpacity = 0.3,
+	barHeight = 15
 }
 
 local STL = LibStub:GetLibrary("StormforgeThreatLib")
@@ -21,7 +22,7 @@ local sound_warning_file = "Sound\\Spells\\SeepingGaseous_Fel_Nova.wav"
 local min_bars = 5
 local max_bars = 25
 local max_currently_visible_bars = 5
-local bar_height = 15
+local bar_height = STM_CONFIG["barHeight"]
 local bar_padding = 2
 local left_margin = bar_height
 
@@ -97,7 +98,7 @@ end
 
 --threat bars
 local function createThreatBar(y)
-	local bar = CreateFrame("Frame", nil, meter)
+	local bar = CreateFrame("Frame", "bar", meter)
 	bar:ClearAllPoints()
 	bar:SetPoint("TOPLEFT", meter, "TOPLEFT", left_margin / scale, y / scale)
 	bar:SetPoint("TOPRIGHT", meter, "TOPRIGHT", 0, y / scale)
@@ -135,15 +136,46 @@ local function createThreatBar(y)
 	return bar
 end
 
-local pullAggroBar = createThreatBar(0)
-pullAggroBar.background:SetTexture(0.8, 0.1, 0.1, 1)
-pullAggroBar.foreground:Hide()
-pullAggroBar.nameText:SetText("Pull Aggro")
-pullAggroBar.threatPrctText:SetText("130%")
-
+local pullAggroBar
 meter.threatBars = {}
-for i = 1, max_bars do
-	table.insert(meter.threatBars, createThreatBar(-(bar_height + bar_padding) * i))
+local function repopBars()
+	for _, childFrame in pairs({meter:GetChildren()}) do
+		if childFrame:GetName() == "bar" then
+			childFrame:Hide()
+			childFrame = nil
+		end
+	end
+
+	if (pullAggroBar ~= nil) then
+		pullAggroBar:Hide()
+		pullAggroBar = nil
+	end
+
+	meter.threatBars = {}
+	for i, bar in pairs(meter.threatBars) do
+		bar:Hide()
+		bar = nil
+	end
+	
+	pullAggroBar = createThreatBar(0)
+	pullAggroBar.background:SetTexture(0.8, 0.1, 0.1, 1)
+	pullAggroBar.foreground:Hide()
+	pullAggroBar.nameText:SetText("Pull Aggro")
+	pullAggroBar.threatPrctText:SetText("130%")
+	
+	for i = 1, max_bars do
+		table.insert(meter.threatBars, createThreatBar(-(bar_height + bar_padding) * i))
+	end
+end
+repopBars()
+
+function PrintMeterChildren()
+	for _, childFrame in pairs({meter:GetChildren()}) do
+		if childFrame:GetName() == "bar" then
+			childFrame:Hide()
+			childFrame = nil
+		end
+	end
 end
 
 function meter.hideThreatBars()
@@ -408,6 +440,7 @@ function SlashCmdList.STORMFORGETHREATMETER(command)
 		print("/stm warnThreshold # - Plays sound when over #% threat.")
 		print("/stm toggleClassIcons - Shows or hides class icons.")
 		print("/stm opacity - Set background opacity. Default 0.3")
+		print("/stm barheight - Set bar height. Default 15")
 	else
 		local arg1 = string.lower(arguments[1])
 		if arg1 == 'lock' then
@@ -444,6 +477,15 @@ function SlashCmdList.STORMFORGETHREATMETER(command)
 			else
 				STM_CONFIG["backgroundOpacity"] = tonumber(arguments[2])
 				meter.background:SetTexture(0, 0, 0, STM_CONFIG["backgroundOpacity"])
+			end
+		elseif arg1 == 'barheight' then
+			if not arguments[2] or tonumber(arguments[2]) == nil then
+				print("Stm: bar height. Range 10 - 30")
+			else
+				STM_CONFIG["barHeight"] = tonumber(arguments[2])
+				bar_height = tonumber(arguments[2])
+				left_margin = bar_height
+				repopBars()
 			end
 		end
 	end
