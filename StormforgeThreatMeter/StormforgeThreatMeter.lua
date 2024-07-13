@@ -175,15 +175,6 @@ local function repopBars()
 end
 repopBars()
 
-function PrintMeterChildren()
-	for _, childFrame in pairs({meter:GetChildren()}) do
-		if childFrame:GetName() == "bar" then
-			childFrame:Hide()
-			childFrame = nil
-		end
-	end
-end
-
 function meter.hideThreatBars()
 	for i = 1, #meter.threatBars do
 		meter.threatBars[i]:Hide()
